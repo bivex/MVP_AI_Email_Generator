@@ -1,0 +1,5 @@
+export const AI_PROVIDER = process.env.AI_PROVIDER || "mock"
+export const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ""
+export const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ""
+export const GOOGLE_AI_API_KEY = process.env.GOOGLE_AI_API_KEY || ""
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
