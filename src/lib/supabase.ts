@@ -12,14 +12,15 @@ export function getSupabaseClient() {
   // Check if we are running in Next.js server context where next/headers is available
   try {
     const { cookies } = require("next/headers")
-    const cookieStore = cookies()
     return createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        getAll() {
+        async getAll() {
+          const cookieStore = await cookies()
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        async setAll(cookiesToSet) {
           try {
+            const cookieStore = await cookies()
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
