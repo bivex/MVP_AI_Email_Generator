@@ -3,9 +3,18 @@ import { GenerateEmail } from "@/application/use-cases/GenerateEmail"
 import { container } from "@/infrastructure/di/container"
 import { EmailTone } from "@/domain/value-objects"
 import { EmailLength } from "@/domain/value-objects"
+import { getSupabaseClient } from "@/lib/supabase"
+import { UserId } from "@/domain/value-objects/UserId"
 
 export async function POST(request: Request) {
   try {
+    const supabase = getSupabaseClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
     const { subject, tone, length } = body
 
@@ -16,7 +25,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const userId = { getValue: () => "demo-user" } as any
+    const userId = new UserId(user.id)
 
     const generateEmail = new GenerateEmail(
       container.getAIProvider(),
