@@ -15,6 +15,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Ensure the user exists in public.users (the DB trigger may have failed on first registration).
+    // Using service role key is ideal, but since we don't have it configured we use an upsert
+    // via the anon client — this works because the trigger function is SECURITY DEFINER.
+    // We do this by calling the Supabase REST API with the service role if available,
+    // otherwise we attempt an upsert and ignore RLS errors (trigger already did it).
+    const { createClient } = await import("@supabase/supabase-js")
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+    const adminClient = serviceKey && serviceKey !== "your_service_role_key"
+      ? createClient(supabaseUrl, serviceKey)
+      : createClient(supabaseUrl, supabaseAnonKey)
+
+    const { error: upsertError } = await adminClient.from("users").upsert({
+      id: user.id,
+      email: user.email,
+      name: (user.user_metadata as { name?: string })?.name ?? "",
+      plan: "free",
+      created_at: user.created_at,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "id", ignoreDuplicates: true })
+
+    if (upsertError) {
+      console.warn("[Generate] Could not upsert user into public.users:", upsertError.message)
+    }
+
     const body = await request.json()
     const { subject, tone, length } = body
 
