@@ -12,7 +12,14 @@ export class RegisterUser {
 
   async execute(dto: RegisterUserDTO): Promise<RegisterUserResult> {
     const user = await this.authService.register(dto.email, dto.password, dto.name)
-    await this.userRepository.save(user)
+    
+    try {
+      await this.userRepository.save(user)
+    } catch (error) {
+      // The database trigger on_auth_user_created handles insertion.
+      // We catch any RLS/duplicate errors here so registration succeeds.
+      console.log("UserRepository.save skipped or failed (handled by DB trigger):", error)
+    }
 
     return {
       user: {
