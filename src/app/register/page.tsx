@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Mail, Lock, User, AlertCircle } from "lucide-react"
+import { Mail, Lock, User, AlertCircle, CheckCircle2 } from "lucide-react"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -14,7 +13,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [confirmationNeeded, setConfirmationNeeded] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,12 +32,41 @@ export default function RegisterPage() {
         throw new Error(data.error || "Registration failed")
       }
 
-      router.push("/dashboard")
+      // With email confirmation enabled in Supabase, the user must verify
+      // their email before they can log in. Show a confirmation screen
+      // instead of sending them to /dashboard (which middleware would reject).
+      setConfirmationNeeded(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed")
     } finally {
       setLoading(false)
     }
+  }
+
+  if (confirmationNeeded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
+        <div className="w-full max-w-md space-y-6 p-8 bg-card rounded-lg border shadow-lg text-center">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Mail className="h-6 w-6 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
+              <CheckCircle2 className="h-6 w-6 text-primary" />
+              Check your email
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              We&apos;ve sent a confirmation link to{" "}
+              <span className="font-medium text-foreground">{email}</span>.
+              Click the link in the email to activate your account, then sign in.
+            </p>
+          </div>
+          <Button asChild className="w-full">
+            <Link href="/login">Back to login</Link>
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

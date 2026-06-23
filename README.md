@@ -129,6 +129,17 @@ src/
    - (Опционально) выполните [`supabase/rls-policies-fix.sql`](./supabase/rls-policies-fix.sql)
      — безопасные fallback-политики RLS для `public.users`
 
+5. **Настроить URLs для email-подтверждения в Supabase**
+   Без этого кнопка «Confirm email address» в письме регистрации ведёт не туда.
+   В Supabase Dashboard → **Authentication → URL Configuration**:
+   - **Site URL** = `https://mvp-ai-email-generator.vercel.app`
+     (на локалке — `http://localhost:8364`)
+   - **Redirect URLs** (add both):
+     - `https://mvp-ai-email-generator.vercel.app/auth/callback`
+     - `http://localhost:8364/auth/callback`
+   После клика по ссылке из письма пользователь попадёт на `/auth/callback`,
+   который обменяет код на сессию и редиректнет на `/dashboard`.
+
 5. **Запустить dev-сервер**
    ```bash
    npm run dev
@@ -208,8 +219,12 @@ npm run test:watch
 2. В [Vercel](https://vercel.com) → **Add New Project** → импортируйте репозиторий.
 3. В **Settings → Environment Variables** добавьте все переменные из `.env.example`
    (как минимум Supabase URL/Anon key). Vercel сам определит Next.js.
-4. **Deploy**. После первого деплоя укажите полученный URL в `NEXT_PUBLIC_APP_URL`
-   и переразвёртывайтесь.
+   ⚠️ **`NEXT_PUBLIC_APP_URL` = ваш production URL** (напр.
+   `https://mvp-ai-email-generator.vercel.app`) — он используется как target
+   для email-подтверждения Supabase.
+4. **Deploy**. После первого деплоя пропишите тот же URL в Supabase Dashboard →
+   Authentication → URL Configuration → **Site URL** и **Redirect URLs**
+   (см. шаг 5 в установке выше).
 
 Альтернативно — Netlify, Railway, Render: любой Node.js-хостинг с поддержкой Next.js.
 

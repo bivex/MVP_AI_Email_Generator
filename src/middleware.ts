@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { createServerClient } from "@supabase/auth-helpers-nextjs"
 
-const publicPaths = ["/login", "/register", "/pricing", "/", "/api/auth/login", "/api/auth/register"]
+const publicPaths = ["/login", "/register", "/pricing", "/", "/auth/callback", "/api/auth/login", "/api/auth/register"]
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname

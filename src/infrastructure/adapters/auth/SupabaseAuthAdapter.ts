@@ -2,6 +2,7 @@ import { IAuthService } from "../../../application/interfaces/IAuthService"
 import { User } from "../../../domain/entities/User"
 import { UserId } from "../../../domain/value-objects/UserId"
 import { getSupabaseClient } from "../../../lib/supabase"
+import { APP_URL } from "../../../infrastructure/config/env"
 
 export class SupabaseAuthAdapter implements IAuthService {
   async register(email: string, password: string, name: string): Promise<User> {
@@ -10,6 +11,10 @@ export class SupabaseAuthAdapter implements IAuthService {
       password,
       options: {
         data: { name },
+        // Tells Supabase where to send the user after they click the
+        // confirmation link in the email. Must be listed in Supabase's
+        // "Redirect URLs" allowlist, otherwise Supabase falls back to Site URL.
+        emailRedirectTo: `${APP_URL}/auth/callback`,
       },
     })
 

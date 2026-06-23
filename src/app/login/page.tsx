@@ -1,19 +1,38 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Mail, Lock, User } from "lucide-react"
+import { Mail, Lock, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Show a message if we were redirected here from /auth/callback after a
+  // failed email-confirmation code exchange.
+  useEffect(() => {
+    if (searchParams.get("error") === "confirmation_failed") {
+      setError(
+        "We couldn't confirm your email. The link may have expired — please try signing in, or register again.",
+      )
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
