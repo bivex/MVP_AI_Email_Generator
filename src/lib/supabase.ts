@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { createServerClient } from "@supabase/auth-helpers-nextjs"
+import type { NextRequest } from "next/server"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -36,6 +37,27 @@ export function getSupabaseClient() {
     // Fallback to static client (client-side or when cookies() is not available)
     return createClient(supabaseUrl, supabaseAnonKey)
   }
+}
+
+/**
+ * Use this in API Route Handlers (POST, GET etc.) where we have access to NextRequest.
+ * Reads cookies directly from the request object so auth session is available.
+ */
+export function getSupabaseClientForRequest(request: NextRequest) {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase environment variables")
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll() {
+        // No-op: cannot set cookies in route handler without NextResponse
+      },
+    },
+  })
 }
 
 

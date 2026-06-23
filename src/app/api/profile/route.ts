@@ -1,24 +1,25 @@
-import { NextResponse } from "next/server"
-import { GetUserProfile } from "@/application/use-cases/GetUserProfile"
-import { SupabaseUserRepository } from "@/infrastructure/adapters/repositories/SupabaseUserRepository"
-import { getSupabaseClient } from "@/lib/supabase"
-import { UserId } from "@/domain/value-objects/UserId"
+import { NextRequest, NextResponse } from "next/server"
+import { getSupabaseClientForRequest } from "@/lib/supabase"
 
-const userRepository = new SupabaseUserRepository()
-const getUserProfile = new GetUserProfile(userRepository)
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient()
+    const supabase = getSupabaseClientForRequest(request)
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (error || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const userId = new UserId(user.id)
-    const result = await getUserProfile.execute(userId)
-    return NextResponse.json({ user: result })
+    // Return user data from the auth JWT directly — no DB query needed
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email ?? "",
+        name: (user.user_metadata as { name?: string })?.name ?? "",
+        plan: "free",
+        createdAt: user.created_at,
+      }
+    })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to fetch profile" },

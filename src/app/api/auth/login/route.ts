@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { AuthenticateUser } from "@/application/use-cases/AuthenticateUser"
 import { SupabaseAuthAdapter } from "@/infrastructure/adapters/auth/SupabaseAuthAdapter"
 
 const authService = new SupabaseAuthAdapter()
 const authenticateUser = new AuthenticateUser(authService)
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { email, password } = body

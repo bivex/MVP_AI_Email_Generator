@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { GenerateEmail } from "@/application/use-cases/GenerateEmail"
 import { container } from "@/infrastructure/di/container"
 import { EmailTone } from "@/domain/value-objects"
 import { EmailLength } from "@/domain/value-objects"
-import { getSupabaseClient } from "@/lib/supabase"
+import { getSupabaseClientForRequest } from "@/lib/supabase"
 import { UserId } from "@/domain/value-objects/UserId"
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient()
+    const supabase = getSupabaseClientForRequest(request)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
