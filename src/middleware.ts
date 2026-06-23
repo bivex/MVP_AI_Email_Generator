@@ -1,30 +1,32 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { SupabaseAuthAdapter } from "@/infrastructure/adapters/auth/SupabaseAuthAdapter"
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
 
-const authService = new SupabaseAuthAdapter()
 const publicPaths = ["/login", "/register", "/pricing", "/", "/api/auth/login", "/api/auth/register"]
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
+  const response = NextResponse.next()
 
   if (publicPaths.includes(path)) {
-    return NextResponse.next()
+    return response
   }
 
-  const user = await authService.getCurrentUser()
+  const supabase = createMiddlewareClient({ req: request, res: response })
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user && path !== "/login" && path !== "/register") {
+  if (!session && path !== "/login" && path !== "/register") {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  if (user && (path === "/login" || path === "/register")) {
+  if (session && (path === "/login" || path === "/register")) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }
+
