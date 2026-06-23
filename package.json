@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "MVP AI Email Generator - Generate professional emails with AI",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8364",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
